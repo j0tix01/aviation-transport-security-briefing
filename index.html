@@ -14,11 +14,13 @@
             height: 100vh;
             background: black;
             user-select: none;
+            overflow: hidden;
         }
         .video-wrapper {
             position: relative;
             width: 100vw;
-            height: 80vh;
+            height: 56.25vw;
+            max-height: 80vh;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -35,22 +37,50 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
             margin-top: 10px;
+            padding: 10px;
+            width: 100%;
+            max-width: 500px;
         }
         .controls button, .controls input[type='range'] {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 10px 15px;
+            font-size: 14px;
             border: none;
             background-color: #ffcc00;
             cursor: pointer;
             border-radius: 5px;
+            flex: 1;
+            min-width: 80px;
         }
         .controls button:hover {
             background-color: #e6b800;
         }
         .volume-slider {
-            width: 100px;
+            width: 100%;
+            max-width: 200px;
+        }
+        @media (max-width: 600px) {
+            .video-wrapper {
+                width: 100vw;
+                height: auto;
+                max-height: 50vh;
+            }
+            iframe {
+                width: 100%;
+                height: 100%;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            .controls button {
+                width: 80%;
+            }
+            .volume-slider {
+                width: 80%;
+            }
         }
     </style>
 </head>
@@ -76,7 +106,7 @@
 
     <script>
         let player = document.getElementById("rutubePlayer");
-        let lastTime = 0;
+        let lastTime = localStorage.getItem("videoTime") ? parseFloat(localStorage.getItem("videoTime")) : 0;
         let isPlaying = false;
 
         function sendCommand(command, data = {}) {
@@ -107,6 +137,7 @@
                 } else {
                     lastTime = currentTime;
                 }
+                localStorage.setItem("videoTime", lastTime);
             }
 
             if (message.type === 'player:changeState' && message.data.state === 'stopped') {
@@ -117,6 +148,12 @@
         setInterval(() => {
             sendCommand('player:currentTime');
         }, 1000);
+
+        window.addEventListener("load", function () {
+            if (lastTime > 0) {
+                sendCommand('player:setCurrentTime', { time: lastTime });
+            }
+        });
     </script>
 </body>
 </html>
